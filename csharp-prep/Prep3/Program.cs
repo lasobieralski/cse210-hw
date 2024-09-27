@@ -1,31 +1,54 @@
 using System;
 using System.Net;
+using System.Security.Cryptography;
 
 class Program
 {
     static void Main(string[] args)
-
     {
-        Console.Write("What is the magic number? ");
-        int magicNumber = int.Parse(Console.ReadLine());
+        
+        Random randomGenerator = new Random();
+        int magicNumber = randomGenerator.Next(1,101);
 
-        Console.Write("What is your guess? ");
-        int guess = int.Parse(Console.ReadLine());
+        int guess = -1;
+        bool playAgain = true;
 
-        if (magicNumber < guess)
+        while (playAgain)
         {
-            Console.WriteLine("lower");
-            
-        }
+            while (guess != magicNumber)
+            {
+                //Console.Write("What is the magic number? ");
+                //guess = int.Parse(Console.ReadLine());
+                //int magicNumber = int.Parse(Console.ReadLine());
+                //string response = "yes";
+                //while (response == "yes")
 
-        else if (magicNumber > guess)
-        {
-            Console.WriteLine("higher");
-        }
+                Console.Write("What is your guess? ");
+                guess = int.Parse(Console.ReadLine());
 
-        else
+                if (guess < magicNumber)
+                {
+                    Console.WriteLine("higher");
+                
+                }
+
+                else if (guess > magicNumber)
+                {
+                    Console.WriteLine("lower");
+                }
+
+                else
+                {
+                    Console.WriteLine("Congratulations you guessed correctly!");
+                }
+            }
+        Console.Write("Do you want to continue? (yes/no): ");
+        string response = Console.ReadLine();
+        if (response != "yes")
         {
-            Console.WriteLine("Congratulations you guessed correctly!");
+            playAgain = false;
         }
-    }
+        }    
+    Console.WriteLine("Thank you for playing! Come back Soon!"); 
+    }     
 }
