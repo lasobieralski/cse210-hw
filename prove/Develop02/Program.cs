@@ -1,3 +1,6 @@
+// I completed the basic requirements plus I personalized the journal 
+// with user's name, indented it for better appearance. I added three journal
+// types to choose from. I studied and learned from Gemini, chatGPT, and a Tutor.
 using System;
 using System.Collections.Generic;
 using System.IO;
