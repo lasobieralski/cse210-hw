@@ -21,10 +21,7 @@ namespace BibleMemory
         {
             return scripture;
         }
-    //public List<string> GetReference()
-    //{
-        //return verses;
-    //}
+        
         public string GetText()
         {
             return string.Join(" ", verses);

@@ -58,20 +58,13 @@ namespace BibleMemory
                     {
                         hiddenWords.Add(index);
                     }
-
                     // Stop if all words are hidden
                     if (hiddenWords.Count == words.Count)
                         break;
                 }
             }
-
-            
-                
         }
         // Check if the word is already hidden
-            
-        
-       
         public bool IsFullyHidden()
         {
             return hiddenWords.Count == words.Count;
