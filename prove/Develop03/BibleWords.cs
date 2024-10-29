@@ -1,7 +1,7 @@
 //class #3
 namespace BibleMemory
 {
-    public class BibleWords
+    public class BibleWords //this represents the words in the text
     {
         public string GetInput()
         {

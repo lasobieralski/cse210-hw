@@ -1,20 +1,21 @@
 namespace BibleMemory
 {
-    public class BibleText
+    //this is my second class
+    public class BibleText //This = the scripture reference class ie.Proverbs 3:5-6
     {
-        private string scripture;
+        private string scriptureReference;
         private List<string> words;
         private List<int> hiddenWords = new List<int>();
         
-        public BibleText(string scripture, List<string> words)
+        public BibleText(string scriptureReference, List<string> words)
         {
-            this.scripture = scripture;
+            this.scriptureReference = scriptureReference;
             this.words = words;
         }
 
         public void DisplayVerse()
         {
-            Console.Write(scripture + " ");
+            Console.Write(scriptureReference + " ");
             for (int i = 0; i < words.Count; i++)
             {
                 if (hiddenWords.Contains(i))
@@ -51,7 +52,7 @@ namespace BibleMemory
                     // Keep generating a random index until an unhidden word is found
                     do
                     {
-                        index = rand.Next(words.Count);
+                      index = rand.Next(words.Count);
                     } while (hiddenWords.Contains(index) && hiddenWords.Count < words.Count);
 
                     if (!hiddenWords.Contains(index))
