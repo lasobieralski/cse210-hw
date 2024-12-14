@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
 public class Expense
 {
-    public string Name { get; private set; }
-    public decimal Amount { get; private set; }
-    public string Category { get; private set; }
+    public string Name { get; set; }
+    public decimal Amount { get; set; }
+    public string Category { get; set; }
 
     public Expense(string name, decimal amount, string category)
     {
@@ -10,7 +12,6 @@ public class Expense
         Amount = amount;
         Category = category;
     }
-
     public override string ToString()
     {
         return $"{Name}: {Amount:C} ({Category})";

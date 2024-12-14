@@ -1,47 +1,87 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-
 public class ReportGenerator
 {
+    public string GenerateFullReport(List<Expense> expenses, List<Debt> debts, decimal monthlyLimit)
+    {
+        decimal totalExpenses = 0;
+        decimal totalDebts = 0;
+
+        // Start building the report
+        string report = "Full Budget Report\n";
+        report += "------------------\n";
+        report += $"Monthly Limit: {monthlyLimit:C}\n\n";
+
+        report += "Expenses:\n";
+        if (expenses.Count == 0)
+        {
+            report += "No expenses recorded.\n";
+        }
+        else
+        {
+            foreach (var e in expenses)
+            {
+                report += $"{e.Name}: {e.Amount:C} ({e.Category})\n";
+                totalExpenses += e.Amount;
+            }
+        }
+
+        report += $"\nTotal Expenses: {totalExpenses:C}\n";
+        report += $"Remaining after Expenses: {monthlyLimit - totalExpenses:C}\n\n";
+
+        report += "Debts:\n";
+        if (debts.Count == 0)
+        {
+            report += "No debts recorded.\n";
+        }
+        else
+        {
+            foreach (var d in debts)
+            {
+                report += $"{d}\n";
+                totalDebts += d.Balance;
+            }
+        }
+
+        report += $"\nTotal Debts: {totalDebts:C}\n";
+
+        // If you want to show the big picture net figure:
+        // Net figure can be interpreted differently based on your needs.
+        // For example, Monthly Limit - Expenses - Debts:
+        decimal netFigure = monthlyLimit - totalExpenses - totalDebts;
+        report += $"Net after Expenses and Debts: {netFigure:C}\n";
+
+        return report;
+    }
+
     public string GenerateExpenseReport(List<Expense> expenses)
     {
-        if (expenses == null || expenses.Count == 0)
+        if (expenses.Count == 0) return "No expenses to report.";
+
+        decimal total = 0;
+        string report = "Expense Report:\n";
+        foreach (var e in expenses)
         {
-            return "Expense Report:\nNo expenses to display.\n";
+            report += e.ToString() + "\n";
+            total += e.Amount;
         }
-
-        StringBuilder report = new StringBuilder("Expense Report:\n");
-        decimal totalExpenses = 0;
-
-        foreach (var expense in expenses)
-        {
-            report.AppendLine(expense.ToString()); // Append expense details
-            totalExpenses += expense.Amount; // Add to total expenses
-        }
-
-        report.AppendLine($"Total Expenses: {totalExpenses:C}"); // Format total as currency
-        return report.ToString(); // Return final report as a string
+        report += $"Total Expenses: {total:C}";
+        return report;
     }
 
     public string GenerateDebtReport(List<Debt> debts)
     {
-        if (debts == null || debts.Count == 0)
-        {
-            return "Debt Report:\nNo debts to display.\n";
-        }
+        if (debts.Count == 0) return "No debts to report.";
 
         string report = "Debt Report:\n";
-        foreach (var debt in debts)
+        decimal totalBalance = 0;
+        foreach (var d in debts)
         {
-            report += debt.ToString() + "\n";
-
-            if (debt is LoanDebt loan)
-            {
-                report += loan.GenerateDetailedLoanReport() + "\n";
-            }
+            report += d.ToString() + "\n";
+            totalBalance += d.Balance;
         }
-
-    return report;
+        report += $"Total Debt: {totalBalance:C}";
+        return report;
     }
+    
 }

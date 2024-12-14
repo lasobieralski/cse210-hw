@@ -1,30 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-
 public class Program
 {
     static Person currentPerson;
     static Budget budget;
     static List<Debt> debts = new List<Debt>();
-    
-    public static void Main(string[] args)
+    static bool isDemoMode = false;
+
+    // Backup fields for original data before demo mode
+    static decimal originalLimit;
+    static List<Expense> originalExpenses;
+    static List<Debt> originalDebts;
+    public static void Main()
     {
-        
-        Debt creditCard = new CreditCardDebt("Visa Platinum", 1000m, 0.18m);
-
-        Console.WriteLine(creditCard); // Display details
-
-        Console.WriteLine("\nAttempting to make a payment of $20...");
-        creditCard.MakePayment(20m); // Below minimum payment
-
-        Console.WriteLine("\nAttempting to make a payment of $50...");
-        creditCard.MakePayment(50m); // Valid payment
-
-        Console.WriteLine("\nUpdated Credit Card Details:");
-        Console.WriteLine(creditCard);
-    
-        // Prompt for user information at the start
         Console.Write("Please enter your full name (e.g., John Doe): ");
         string fullName = Console.ReadLine();
         string[] nameParts = fullName.Split(' ');
@@ -32,109 +20,71 @@ public class Program
         if (nameParts.Length < 2)
         {
             Console.WriteLine("Invalid name format. Please use 'First Last'.");
-            return;
+            return; // Exit the program if invalid name
         }
-
         // Initialize the Person object
         currentPerson = new Person(nameParts[0], nameParts[1]);
-        Console.WriteLine($"\nWelcome to Design Your Budget Program, {currentPerson.GetFullName()}!");
-
-        // Option to load demo data
-        Console.WriteLine("\nWould you like to load demo data? (y/n): ");
-        string loadDemo = Console.ReadLine();
-
-        if (loadDemo.ToLower() == "y")
+        Console.WriteLine($"\nHello {currentPerson.GetFullName()}!\nWelcome to Your Personalized Budget Program!");
+        currentPerson.LoadData(out decimal loadedLimit, out List<Expense> loadedExpenses, out List<Debt> loadedDebts);
+        
+        if (loadedLimit > 0)
         {
-            LoadTestData();
+            // Returning user with previously saved data
+            budget = new Budget(loadedLimit);
+            foreach (var exp in loadedExpenses)
+                budget.AddExpense(exp);
+                debts = loadedDebts;
+
+            //Console.WriteLine("Loaded existing data from file.");
+        }
+        else
+        {
+            // New user or no existing data
+            budget = new Budget(0m);
+            debts = new List<Debt>();
+            Console.WriteLine("No previous data found.");
         }
 
-        // Main menu loop
+        // Backup the currently loaded data
+        originalLimit = budget.MonthlyLimit;
+        originalExpenses = budget.GetExpenses();
+        originalDebts = new List<Debt>(debts);
+
+        Console.Write("Would you like to try the Demo Mode before proceeding? (y/n): ");
+        string demoChoice = Console.ReadLine().ToLower();
+        if (demoChoice == "y")
+        {
+            EnterDemoMode();
+        }
+        else
+        {
+            if (originalLimit == 0)
+            {
+                Console.WriteLine("Let's get you started by entering your monthly limit. Press Enter.");
+                Console.ReadLine();
+                SetMonthlyLimit();
+            }
+        }
+
         bool running = true;
         while (running)
         {
             Console.Clear();
-            Console.WriteLine("\nMain Menu:");
-            Console.WriteLine("1. Manage Budget");
-            Console.WriteLine("2. Manage Transactions (Expenses/Income)");
-            Console.WriteLine("3. Manage Debts (Loans/Credit Cards)");
-            Console.WriteLine("4. Reports and Data");
+            Console.WriteLine($"\nWelcome to the Demo Budget Program, {currentPerson.GetFullName()}!");
+            Console.WriteLine("Main Menu:");
+            Console.WriteLine("1. Manage Budget Limit");
+            Console.WriteLine("2. Manage Expenses");
+            Console.WriteLine("3. Manage Debts");
+            Console.WriteLine("4. View Budget Report");
             Console.WriteLine("5. Exit Program");
-            Console.WriteLine("6. Help");
-            Console.Write("Select a choice (1-6): ");
 
-            int choice;
-            if (int.TryParse(Console.ReadLine(), out choice))
+            if (isDemoMode)
             {
-                switch (choice)
-                {
-                    case 1:
-                        ManageBudget();
-                        break;
-                    case 2:
-                        ManageTransactions();
-                        break;
-                    case 3:
-                        ManageDebts();
-                        break;
-                    case 4:
-                        ViewReports();
-                        break;
-                    case 5:
-                        running = false;
-                        Console.WriteLine("\nThank you for using the program. Goodbye!");
-                        break;
-                    case 6:
-                        ShowHelp();
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 6.");
-                        break;
-                }
+                Console.WriteLine("6. Exit Demo Mode");
             }
-            else
-            {
-                Console.WriteLine("Invalid input. Please enter a number.");
-            }
-        }
-    }
-
-    static void LoadTestData()
-    {
-        budget = new Budget(3000m);
-
-        // Add some expenses
-        budget.AddExpense(new Expense("Groceries", 250m, "Food"));
-        budget.AddExpense(new Expense("Electric Bill", 115m, "Utilities"));
-        budget.AddExpense(new Expense("Cell Phone Bill", 35m, "Utilities"));
-        budget.AddExpense(new Expense("Internet Bill", 50m, "Utilities"));
-        budget.AddExpense(new Expense("Rent", 1495m, "Housing"));
-
-        // Add some debts
-        debts.Add(new CreditCardDebt("Visa Platinum", 6500m, 0.18m));
-        debts.Add(new CreditCardDebt("Shell Visa", 800m, 0.21m));
-        
-        debts.Add(new CarLoan(20000m, 0.05m, 5, "2022 Toyota Camry", 18000m));
-        debts.Add(new HouseLoan(300000m, 0.04m, 30, 10000m));
-
-        Console.WriteLine("Demo data loaded successfully. Press Enter to continue.");
-        Console.ReadLine();
-    }
-
-    static void ManageBudget()
-    {
-        bool backToMain = false;
-        while (!backToMain)
-        {
-            Console.Clear();
-            Console.WriteLine("\nManage Budget:");
-            Console.WriteLine("1. Set Monthly Limit");
-            Console.WriteLine("2. Add Expense");
-            Console.WriteLine("3. View Budget Report");
-            Console.WriteLine("4. Back to Main Menu");
-            Console.Write("Select a choice (1-4): ");
-
-            int choice;
-            if (int.TryParse(Console.ReadLine(), out choice))
+            
+            Console.Write("Select an option: ");
+            if (int.TryParse(Console.ReadLine(), out int choice))
             {
                 switch (choice)
                 {
@@ -142,240 +92,223 @@ public class Program
                         SetMonthlyLimit();
                         break;
                     case 2:
-                        AddExpense();
+                        ManageExpenses();
                         break;
                     case 3:
-                        ViewBudgetReport();
+                        ManageDebts();
                         break;
                     case 4:
-                        backToMain = true;
+                        ViewBudgetReport();
+                        break;
+                    case 5:
+                        if (!isDemoMode)
+                        {
+                            SaveData();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Exiting demo mode. Press Enter.");
+                            Console.ReadLine();
+                        }
+                
+                        running = false;
+                        break;
+                    case 6:
+
+                        if (isDemoMode)
+                        {
+                            ExitDemoMode();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid choice. Press Enter.");
+                            Console.ReadLine();
+                        }
                         break;
                     default:
-                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 4.");
+                        Console.WriteLine("Invalid choice. Press Enter.");
+                        Console.ReadLine();
                         break;
                 }
             }
             else
             {
-                Console.WriteLine("Invalid input. Please enter a valid number.");
+                Console.WriteLine("Invalid input. Press Enter.");
+                Console.ReadLine();
             }
         }
+        Console.WriteLine("Goodbye!");
     }
-    static decimal GetValidDecimal(string prompt)
+    static void EnterDemoMode()
     {
-        decimal value;
-        while (true)
-        {
-            Console.Write(prompt);
-            if (decimal.TryParse(Console.ReadLine(), out value) && value > 0)
-            {
-                return value;
-            }
-            Console.WriteLine("Invalid input. Please enter a positive number.");
-        }
-    }
+        isDemoMode = true;
+        budget = new Budget(0);
+        debts = new List<Debt>();
 
-    static int GetMenuChoice(string prompt, int min, int max)
+        DemoData demo = new DemoData();
+        demo.LoadDemo(budget, debts);
+
+        Console.WriteLine("Demo data loaded. Press Enter to continue.");
+        Console.ReadLine();
+    }
+    static void ExitDemoMode()
     {
-        int choice;
-        while (true)
-        {
-            Console.Write(prompt);
-            if (int.TryParse(Console.ReadLine(), out choice) && choice >= min && choice <= max)
-            {
-                return choice;
-            }
-            Console.WriteLine($"Invalid choice. Please select a number between {min} and {max}.");
-        }
-    }
+        // Restore original data
+        isDemoMode = false;
 
+        budget = new Budget(originalLimit);
+        foreach (var exp in originalExpenses)
+            budget.AddExpense(exp);
+
+        debts = new List<Debt>(originalDebts);
+
+        Console.WriteLine("You have exited demo mode. Press Enter to continue.");
+        Console.ReadLine();
+    }
     static void SetMonthlyLimit()
     {
-        Console.Write("Enter the new monthly limit: ");
-        decimal newLimit;
-        if (decimal.TryParse(Console.ReadLine(), out newLimit) && newLimit > 0)
+        Console.Write($"Current Monthly Limit: {budget.MonthlyLimit:C}\nEnter new monthly limit: ");
+        if (decimal.TryParse(Console.ReadLine(), out decimal newLimit))
         {
-            if (budget == null)
+            budget.MonthlyLimit = newLimit;
+            // Also update originalLimit if we are not in demo mode
+            if (!isDemoMode)
             {
-                budget = new Budget(newLimit);
+                originalLimit = newLimit;
             }
-            else
-            {
-                budget.SetMonthlyLimit(newLimit);
-            }
-            Console.WriteLine($"Monthly limit set to: {newLimit:C}");
+            Console.WriteLine("Monthly limit updated. Press Enter.");
         }
         else
         {
-            Console.WriteLine("Invalid input. Please enter a positive number.");
+            Console.WriteLine("Invalid input. Monthly limit not changed. Press Enter.");
         }
-    }
-
-    static void AddExpense()
-{
-    if (budget == null)
-    {
-        Console.WriteLine("Please set a monthly limit before adding expenses.");
-        return;
-    }
-
-    // Prompt for expense name
-    Console.Write("Enter the expense name: ");
-    string name = Console.ReadLine();
-    while (string.IsNullOrWhiteSpace(name))
-    {
-        Console.Write("Expense name cannot be empty. Please enter the expense name: ");
-        name = Console.ReadLine();
-    }
-
-    // Prompt for expense amount
-    decimal amount = GetValidDecimal("Enter the expense amount: ");
-
-    // Prompt for expense category
-    Console.Write("Enter the expense category: ");
-    string category = Console.ReadLine();
-    while (string.IsNullOrWhiteSpace(category))
-    {
-        Console.Write("Expense category cannot be empty. Please enter the expense category: ");
-        category = Console.ReadLine();
-    }
-
-    // Create a new Expense object
-    Expense expense = new Expense(name, amount, category);
-
-    // Add the expense to the budget
-    budget.AddExpense(expense);
-    Console.WriteLine($"Expense '{name}' added successfully.");
-}
-
-
-    static void ViewBudgetReport()
-    {
-        if (budget == null)
-        {
-            Console.WriteLine("Please set a monthly limit before viewing the report.");
-            return;
-        }
-
-        Console.WriteLine(budget.GenerateBudgetReport());
-        Console.WriteLine("\nPress Enter to return.");
         Console.ReadLine();
     }
-
-    static void ShowHelp()
+    static void ManageExpenses()
     {
-        Console.Clear();
-        Console.WriteLine("Program Help:");
-        Console.WriteLine("1. Manage Budget: Set a monthly limit and add expenses.");
-        Console.WriteLine("2. Manage Transactions: Add or view expenses.");
-        Console.WriteLine("3. Manage Debts: Add debts, view debts, and make payments.");
-        Console.WriteLine("4. Reports and Data: View budget and debt summaries.");
-        Console.WriteLine("5. Exit Program: Close the program.");
-        Console.WriteLine("6. Help: Display this guide.");
-        Console.WriteLine("\nPress Enter to return to the main menu.");
-        Console.ReadLine();
-    }
-    static void ManageTransactions()
-    {
-        bool backToMain = false;
-        while (!backToMain)
+        bool done = false;
+        while (!done)
         {
             Console.Clear();
-            Console.WriteLine("\nManage Transactions:");
+            Console.WriteLine("Manage Expenses:");
             Console.WriteLine("1. Add Expense");
             Console.WriteLine("2. View Expenses");
-            Console.WriteLine("3. Back to Main Menu");
-            Console.Write("Select a choice (1-3): ");
-
-            int choice;
-            if (int.TryParse(Console.ReadLine(), out choice))
+            Console.WriteLine("3. Remove an Expense");
+            Console.WriteLine("4. Back");
+            Console.Write("Choice: ");
+            if (int.TryParse(Console.ReadLine(), out int choice))
             {
                 switch (choice)
                 {
-                    case 1:
-                        AddExpense();
-                        break;
-                    case 2:
-                        ViewExpenses();
-                        break;
-                    case 3:
-                        backToMain = true;
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 3.");
-                        break;
+                    case 1: AddExpense(); break;
+                    case 2: ViewExpenses(); break;
+                    case 3: RemoveExpense(); break;
+                    case 4: done = true; break;
                 }
             }
-            else
-            {
-                Console.WriteLine("Invalid input. Please enter a valid number.");
-            }
         }
+    }
+    static void AddExpense()
+    {
+        Console.Write("Enter expense name: ");
+        string name = Console.ReadLine();
+        Console.Write("Enter expense amount: ");
+        if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+        {
+            Console.Write("Enter expense category: ");
+            string category = Console.ReadLine();
+            budget.AddExpense(new Expense(name, amount, category));
+            // If not in demo mode, update our backups
+            if (!isDemoMode)
+            {
+                originalExpenses = budget.GetExpenses();
+            }
+            Console.WriteLine("Expense added. Press Enter.");
+        }
+        else
+        {
+            Console.WriteLine("Invalid amount. Press Enter.");
+        }
+        Console.ReadLine();
     }
     static void ViewExpenses()
     {
         Console.Clear();
-        if (budget == null || budget.GetTotalExpenses() == 0)
+        var expenses = budget.GetExpenses();
+        if (expenses.Count == 0)
         {
-            Console.WriteLine("No expenses to display.");
+            Console.WriteLine("No expenses recorded.");
         }
         else
         {
-            Console.WriteLine(budget.GenerateBudgetReport());
+            foreach (var e in expenses)
+            {
+                Console.WriteLine(e);
+            }
         }
-        Console.WriteLine("\nPress Enter to return.");
+        Console.WriteLine("Press Enter to return.");
+        Console.ReadLine();
+    }
+    static void RemoveExpense()
+    {
+        var expenses = budget.GetExpenses();
+        if (expenses.Count == 0)
+        {
+            Console.WriteLine("No expenses to remove. Press Enter.");
+            Console.ReadLine();
+            return;
+        }
+
+        for (int i = 0; i < expenses.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. {expenses[i]}");
+        }
+
+        Console.Write("Select the expense number to remove: ");
+        if (int.TryParse(Console.ReadLine(), out int index) && index > 0 && index <= expenses.Count)
+        {
+            budget.RemoveExpense(expenses[index - 1]);
+            // Update backup if not in demo mode
+            if (!isDemoMode)
+            {
+                originalExpenses = budget.GetExpenses();
+            }
+            Console.WriteLine("Expense removed. Press Enter.");
+        }
+        else
+        {
+            Console.WriteLine("Invalid selection. Press Enter.");
+        }
         Console.ReadLine();
     }
     static void ManageDebts()
     {
-        bool backToMain = false;
-        while (!backToMain)
+        bool done = false;
+        while (!done)
         {
             Console.Clear();
-        Console.WriteLine("\nManage Debts:");
-        Console.WriteLine("1. Add Debt");
-        Console.WriteLine("2. View Debts");
-        Console.WriteLine("3. Make a Payment");
-        Console.WriteLine("4. View Payment History");
-        Console.WriteLine("5. Back to Main Menu");
-        Console.Write("Select a choice (1-5): ");
+            Console.WriteLine("Manage Debts:");
+            Console.WriteLine("1. Add Debt");
+            Console.WriteLine("2. View Debts");
+            Console.WriteLine("3. Make a Payment");
+            Console.WriteLine("4. Back");
+            Console.Write("Select a choice: ");
 
-        int choice;
-        if (int.TryParse(Console.ReadLine(), out choice))
-        {
-            switch (choice)
+            if (int.TryParse(Console.ReadLine(), out int choice))
             {
-                case 1:
-                    AddDebt();
-                    break;
-                case 2:
-                    ViewDebts();
-                    break;
-                case 3:
-                    MakePayment();
-                    break;
-                case 4:
-                    ViewPaymentHistory();
-                    break;
-                case 5:
-                    backToMain = true;
-                    break;
-                default:
-                    Console.WriteLine("Invalid choice. Please enter a number between 1 and 5.");
-                    break;
+                switch (choice)
+                {
+                    case 1: AddDebt(); break;
+                    case 2: ViewDebts(); break;
+                    case 3: MakePayment(); break;
+                    case 4: done = true; break;
+                }
             }
         }
-        else
-        {
-            Console.WriteLine("Invalid input. Please enter a valid number.");
-        }
     }
-}
-
-
     static void AddDebt()
     {
-        Console.Write("Enter the debt type (1 for Loan, 2 for Credit Card): ");
+        Console.Write("Enter debt type (1 for Credit Card, 2 for Loan): ");
         int debtType = int.Parse(Console.ReadLine());
 
         Console.Write("Enter the debt name: ");
@@ -389,139 +322,98 @@ public class Program
 
         if (debtType == 1)
         {
-            Console.Write("Enter the loan term in years: ");
-            int termYears = int.Parse(Console.ReadLine());
-            
+            debts.Add(new CreditCardDebt(name, balance, interestRate));
         }
         else if (debtType == 2)
         {
-            debts.Add(new CreditCardDebt(name, balance, interestRate));
+            Console.Write("Enter the loan term in years: ");
+            int termYears = int.Parse(Console.ReadLine());
+            debts.Add(new LoanDebt(name, balance, interestRate, termYears));
         }
         else
         {
             Console.WriteLine("Invalid debt type.");
         }
-    }
 
+        // Update backup if not in demo mode
+        if (!isDemoMode)
+        {
+            originalDebts = new List<Debt>(debts);
+        }
+
+        Console.WriteLine("Debt added. Press Enter.");
+        Console.ReadLine();
+    }
     static void ViewDebts()
     {
+        Console.Clear();
         if (debts.Count == 0)
         {
             Console.WriteLine("No debts to display.");
         }
         else
         {
-            foreach (var debt in debts)
+            foreach (var d in debts)
             {
-                Console.WriteLine(debt);
-                if (debt is CreditCardDebt creditCardDebt)
-                {
-                    Console.WriteLine($"Minimum Payment: {creditCardDebt.CalculateMonthlyPayment():C}");
-                }
+                Console.WriteLine(d);
             }
         }
         Console.WriteLine("\nPress Enter to return.");
         Console.ReadLine();
     }
-
     static void MakePayment()
     {
-         if (debts.Count == 0)
-        {
-            Console.WriteLine("No debts available to make payments.");
-            return;
-        }
-
         Console.WriteLine("Select a debt to make a payment:");
         for (int i = 0; i < debts.Count; i++)
         {
             Console.WriteLine($"{i + 1}. {debts[i]}");
         }
 
-        int choice;
-        if (!int.TryParse(Console.ReadLine(), out choice) || choice < 1 || choice > debts.Count)
+        if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= debts.Count)
         {
-            Console.WriteLine("Invalid choice.");
-            return;
-        }
-
-        Console.Write("Enter the payment amount: ");
-        decimal payment;
-        if (!decimal.TryParse(Console.ReadLine(), out payment) || payment <= 0)
-        {
-            Console.WriteLine("Invalid payment amount.");
-            return;
-        }
-
-        debts[choice - 1].MakePayment(payment);
-    } 
-
-    static void ViewPaymentHistory()
-    {
-        if (debts.Count == 0)
-        {
-            Console.WriteLine("No debts available to view payment history.");
-            return;
-        }
-
-        Console.WriteLine("Select a debt to view payment history:");
-        for (int i = 0; i < debts.Count; i++)
-        {
-            Console.WriteLine($"{i + 1}. {debts[i]}");
-        }
-
-        int choice;
-        if (!int.TryParse(Console.ReadLine(), out choice) || choice < 1 || choice > debts.Count)
-        {
-            Console.WriteLine("Invalid choice.");
-            return;
-        }
-
-        Console.WriteLine($"Payment History for {debts[choice - 1]}:\n");
-        Console.WriteLine(debts[choice - 1].GetPaymentHistory());
-        Console.WriteLine("\nPress Enter to return.");
-        Console.ReadLine();
-    }
-
-    static void ViewReports()
-    {
-        ReportGenerator reportGenerator = new ReportGenerator();
-
-        Console.Clear();
-        Console.WriteLine("\nReports:");
-        Console.WriteLine("1. Expense Report");
-        Console.WriteLine("2. Debt Report");
-        Console.WriteLine("3. Back to Main Menu");
-        Console.Write("Select a choice (1-3): ");
-
-        int choice;
-        if (int.TryParse(Console.ReadLine(), out choice))
-        {
-            switch (choice)
+            Console.Write("Enter the payment amount: ");
+            if (decimal.TryParse(Console.ReadLine(), out decimal payment))
             {
-                case 1:
-                    if (budget != null)
-                    {
-                        Console.WriteLine(reportGenerator.GenerateExpenseReport(budget.GetExpenses()));
-                    }
-                    
-                    break;
-                case 2:
-                    Console.WriteLine(reportGenerator.GenerateDebtReport(debts));
-                    break;
-                case 3:
-                    return;
-                default:
-                    Console.WriteLine("Invalid choice. Please enter a number between 1 and 3.");
-                    break;
+                debts[choice - 1].MakePayment(payment);
+                // Update backup if not in demo mode
+                if (!isDemoMode)
+                {
+                    originalDebts = new List<Debt>(debts);
+                }
+                Console.WriteLine("Payment made successfully. Press Enter.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid payment amount. Press Enter.");
             }
         }
         else
         {
-            Console.WriteLine("Invalid input. Please enter a valid number.");
+            Console.WriteLine("Invalid selection. Press Enter.");
         }
-        Console.WriteLine("\nPress Enter to return.");
         Console.ReadLine();
-        
+    }
+    static void ViewBudgetReport()
+    {
+        ReportGenerator reportGenerator = new ReportGenerator();
+        string fullReport = reportGenerator.GenerateFullReport(budget.GetExpenses(), debts, budget.MonthlyLimit);
+        Console.WriteLine(fullReport);
+        Console.WriteLine("Press Enter to return.");
+        Console.ReadLine();
+    }
+    static void SaveData()
+    {
+        if (isDemoMode)
+        {
+            Console.WriteLine("You are currently in demo mode. Changes are not saved. Press Enter.");
+            Console.ReadLine();
+        }
+        else
+        {
+            currentPerson.SaveData(budget.MonthlyLimit, budget.GetExpenses(), debts);
+            string fileName = currentPerson.GetFileName();
+            Console.WriteLine("Data saved successfully.");
+            Console.WriteLine($"File saved to: {fileName}");
+        }
     }
 }

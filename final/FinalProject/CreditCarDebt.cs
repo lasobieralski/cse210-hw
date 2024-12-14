@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-public class LoanDebt : Debt
+public class CreditCardDebt : Debt
 {
-    public int TermYears { get; set; }
-
-    public LoanDebt(string name, decimal balance, decimal interestRate, int termYears)
+    public CreditCardDebt(string name, decimal balance, decimal interestRate)
         : base(name, balance, interestRate)
-    {
-        TermYears = termYears;
-    }
+    { }
 
     public override void MakePayment(decimal amount)
     {
@@ -19,10 +15,5 @@ public class LoanDebt : Debt
     public override decimal CalculateMonthlyInterest()
     {
         return Balance * InterestRate / 12;
-    }
-
-    public override string ToString()
-    {
-        return base.ToString() + $", Term: {TermYears} years";
     }
 }
